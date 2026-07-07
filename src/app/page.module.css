@@ -1,0 +1,25 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.main h1 {
+  margin-bottom: 0.5rem;
+}
+
+.meta {
+  margin-top: 1.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.meta code {
+  background: #f4f4f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+}
