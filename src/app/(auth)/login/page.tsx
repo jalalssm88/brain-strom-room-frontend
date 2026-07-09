@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLogin } from '@/features/auth/useAuth';
+import { getPostAuthPath } from '@/lib/authHelpers';
 import { toApiError } from '@/lib/api';
 import styles from '@/app/auth.module.css';
 
@@ -19,8 +20,8 @@ export default function LoginPage() {
     setError('');
 
     try {
-      await loginMutation.mutateAsync({ email, password });
-      router.push('/dashboard');
+      const result = await loginMutation.mutateAsync({ email, password });
+      router.push(getPostAuthPath(result.user));
     } catch (err) {
       setError(toApiError(err).message);
     }
@@ -69,6 +70,12 @@ export default function LoginPage() {
             {loginMutation.isPending ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
+        <p className={styles.footer}>
+          <Link href="/forgot-password" className={styles.link}>
+            Forgot password?
+          </Link>
+        </p>
 
         <p className={styles.footer}>
           Don&apos;t have an account?{' '}

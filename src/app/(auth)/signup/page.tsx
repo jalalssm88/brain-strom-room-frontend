@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSignup } from '@/features/auth/useAuth';
+import { getPostAuthPath } from '@/lib/authHelpers';
 import { toApiError } from '@/lib/api';
 import styles from '@/app/auth.module.css';
 
@@ -20,8 +21,8 @@ export default function SignupPage() {
     setError('');
 
     try {
-      await signupMutation.mutateAsync({ fullName, email, password });
-      router.push('/dashboard');
+      const result = await signupMutation.mutateAsync({ fullName, email, password });
+      router.push(getPostAuthPath(result.user));
     } catch (err) {
       setError(toApiError(err).message);
     }

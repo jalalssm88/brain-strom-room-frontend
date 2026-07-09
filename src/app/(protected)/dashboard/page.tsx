@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMe, useLogout } from '@/features/auth/useAuth';
+import { isLocalUserUnverified } from '@/lib/authHelpers';
 import LoadingScreen from '@/components/LoadingScreen';
 import styles from './dashboard.module.css';
 
@@ -17,12 +18,18 @@ export default function DashboardPage() {
     }
   }, [isError, router]);
 
+  useEffect(() => {
+    if (user && isLocalUserUnverified(user)) {
+      router.replace('/verify-email');
+    }
+  }, [user, router]);
+
   const handleLogout = async () => {
     await logoutMutation.mutateAsync();
     router.push('/login');
   };
 
-  if (isLoading || !user) {
+  if (isLoading || !user || isLocalUserUnverified(user)) {
     return <LoadingScreen />;
   }
 

@@ -13,6 +13,8 @@ export function middleware(request: NextRequest) {
 
   const isGuestOnlyPath = GUEST_ONLY_PATHS.some((path) => pathname.startsWith(path));
   const isProtectedPath = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
+  const isVerifyEmailPath = pathname.startsWith('/verify-email');
+  const hasEmailTokenParam = request.nextUrl.searchParams.has('token');
 
   if (isGuestOnlyPath && hasToken) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
@@ -22,9 +24,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
+  // /verify-email?token=... is public (email link may open while logged out).
+  // /verify-email without a token requires an auth session (resend flow).
+  if (isVerifyEmailPath && !hasEmailTokenParam && !hasToken) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/login', '/signup', '/dashboard/:path*'],
+  matcher: ['/login', '/signup', '/dashboard/:path*', '/verify-email'],
 };

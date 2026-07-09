@@ -1,7 +1,16 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { signupRequest, loginRequest, logoutRequest, getMeRequest } from '@/lib/auth';
+import {
+  signupRequest,
+  loginRequest,
+  logoutRequest,
+  getMeRequest,
+  verifyEmailRequest,
+  resendVerificationRequest,
+  forgotPasswordRequest,
+  resetPasswordRequest,
+} from '@/lib/auth';
 import { setTokens, clearTokens, getRefreshToken } from '@/lib/tokenStorage';
 import { useAppDispatch } from '@/store/hooks';
 import { setUser, clearUser } from '@/store/authSlice';
@@ -55,5 +64,36 @@ export function useMe() {
       return user;
     },
     retry: false,
+  });
+}
+
+export function useVerifyEmail() {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: verifyEmailRequest,
+    onSuccess: (user) => {
+      dispatch(setUser(user));
+      queryClient.setQueryData(['auth', 'me'], user);
+    },
+  });
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: resendVerificationRequest,
+  });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: forgotPasswordRequest,
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: resetPasswordRequest,
   });
 }

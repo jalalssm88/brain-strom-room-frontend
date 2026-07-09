@@ -26,3 +26,26 @@ export async function getMeRequest(): Promise<AuthUser> {
   const { data } = await apiClient.get<ApiSuccessResponse<{ user: AuthUser }>>('/auth/me');
   return data.data.user;
 }
+
+export async function verifyEmailRequest(token: string): Promise<AuthUser> {
+  const { data } = await apiClient.post<ApiSuccessResponse<{ user: AuthUser; message: string }>>(
+    '/auth/verify-email',
+    { token },
+  );
+  return data.data.user;
+}
+
+export async function resendVerificationRequest(): Promise<void> {
+  await apiClient.post('/auth/resend-verification');
+}
+
+export async function forgotPasswordRequest(email: string): Promise<void> {
+  await apiClient.post('/auth/forgot-password', { email });
+}
+
+export async function resetPasswordRequest(payload: {
+  token: string;
+  password: string;
+}): Promise<void> {
+  await apiClient.post('/auth/reset-password', payload);
+}
