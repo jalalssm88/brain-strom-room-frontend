@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSignup } from '@/features/auth/useAuth';
 import { getPostAuthPath } from '@/lib/authHelpers';
 import { toApiError } from '@/lib/api';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
 import styles from '@/app/auth.module.css';
 
 export default function SignupPage() {
@@ -33,6 +34,8 @@ export default function SignupPage() {
       <div className={styles.card}>
         <h1 className={styles.title}>Create account</h1>
         <p className={styles.subtitle}>Join Brain Strom Room</p>
+
+        <GoogleSignInButton />
 
         <form className={styles.form} onSubmit={handleSubmit}>
           {error && <div className={styles.error}>{error}</div>}

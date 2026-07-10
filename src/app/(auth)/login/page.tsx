@@ -1,19 +1,29 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLogin } from '@/features/auth/useAuth';
 import { getPostAuthPath } from '@/lib/authHelpers';
+import { GOOGLE_AUTH_ERRORS } from '@/lib/oauth';
 import { toApiError } from '@/lib/api';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
 import styles from '@/app/auth.module.css';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const loginMutation = useLogin();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const oauthError = searchParams.get('error');
+    if (oauthError && GOOGLE_AUTH_ERRORS[oauthError]) {
+      setError(GOOGLE_AUTH_ERRORS[oauthError]);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -32,6 +42,8 @@ export default function LoginPage() {
       <div className={styles.card}>
         <h1 className={styles.title}>Welcome back</h1>
         <p className={styles.subtitle}>Sign in to Brain Strom Room</p>
+
+        <GoogleSignInButton />
 
         <form className={styles.form} onSubmit={handleSubmit}>
           {error && <div className={styles.error}>{error}</div>}
@@ -85,5 +97,13 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }
