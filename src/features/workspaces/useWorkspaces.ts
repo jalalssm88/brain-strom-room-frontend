@@ -1,22 +1,35 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   listWorkspacesRequest,
   createWorkspaceRequest,
   updateWorkspaceRequest,
   deleteWorkspaceRequest,
+  getWorkspaceRequest,
   listWorkspaceMembersRequest,
   inviteMemberRequest,
   removeMemberRequest,
 } from '@/lib/workspaces';
 import { respondInvitationRequest } from '@/lib/invitations';
 import { WorkspaceTab } from '@/types/workspace';
+import { PAGE_SIZE } from '@/types/pagination';
 
-export function useWorkspaces(tab: WorkspaceTab = 'owned') {
-  return useQuery({
+export function useInfiniteWorkspaces(tab: WorkspaceTab = 'owned') {
+  return useInfiniteQuery({
     queryKey: ['workspaces', tab],
-    queryFn: () => listWorkspacesRequest(tab),
+    queryFn: ({ pageParam = 0 }) => listWorkspacesRequest(tab, pageParam, PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined,
+  });
+}
+
+export function useWorkspace(workspaceId: number) {
+  return useQuery({
+    queryKey: ['workspaces', workspaceId],
+    queryFn: () => getWorkspaceRequest(workspaceId),
+    enabled: workspaceId > 0,
   });
 }
 
@@ -37,8 +50,9 @@ export function useUpdateWorkspace() {
   return useMutation({
     mutationFn: ({ id, name }: { id: number; name: string }) =>
       updateWorkspaceRequest(id, { name }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      queryClient.invalidateQueries({ queryKey: ['workspaces', variables.id] });
     },
   });
 }

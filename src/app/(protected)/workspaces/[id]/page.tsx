@@ -1,11 +1,11 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useMe } from '@/features/auth/useAuth';
 import {
-  useWorkspaces,
+  useWorkspace,
   useUpdateWorkspace,
   useDeleteWorkspace,
   useWorkspaceMembers,
@@ -22,8 +22,7 @@ export default function WorkspaceDetailPage() {
   const params = useParams();
   const workspaceId = Number(params.id);
   const { data: user, isLoading: userLoading, isError } = useMe();
-  const { data: ownedWorkspaces, isLoading: workspacesLoading } = useWorkspaces('owned');
-  const { data: sharedWorkspaces } = useWorkspaces('shared');
+  const { data: workspace, isLoading: workspaceLoading } = useWorkspace(workspaceId);
   const { data: members, isLoading: membersLoading, refetch: refetchMembers } =
     useWorkspaceMembers(workspaceId);
   const updateMutation = useUpdateWorkspace();
@@ -35,11 +34,6 @@ export default function WorkspaceDetailPage() {
   const [inviteRole, setInviteRole] = useState<'EDITOR' | 'VIEWER'>('EDITOR');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  const workspace = useMemo(() => {
-    const all = [...(ownedWorkspaces ?? []), ...(sharedWorkspaces ?? [])];
-    return all.find((item) => item.id === workspaceId) ?? null;
-  }, [ownedWorkspaces, sharedWorkspaces, workspaceId]);
 
   useEffect(() => {
     if (isError) router.replace('/login');
@@ -113,7 +107,7 @@ export default function WorkspaceDetailPage() {
     }
   };
 
-  if (userLoading || workspacesLoading || !user || isLocalUserUnverified(user)) {
+  if (userLoading || workspaceLoading || !user || isLocalUserUnverified(user)) {
     return <LoadingScreen />;
   }
 

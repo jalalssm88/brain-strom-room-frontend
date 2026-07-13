@@ -1,16 +1,20 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   listNotificationsRequest,
   markNotificationReadRequest,
   markAllNotificationsReadRequest,
 } from '@/lib/notifications';
+import { PAGE_SIZE } from '@/types/pagination';
 
-export function useNotifications() {
-  return useQuery({
+export function useInfiniteNotifications() {
+  return useInfiniteQuery({
     queryKey: ['notifications'],
-    queryFn: listNotificationsRequest,
+    queryFn: ({ pageParam = 0 }) => listNotificationsRequest(pageParam, PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.offset + lastPage.limit : undefined,
   });
 }
 

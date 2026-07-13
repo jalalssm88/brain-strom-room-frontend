@@ -189,6 +189,17 @@
   text-align: center;
 }
 
+.scrollSentinel {
+  height: 1px;
+}
+
+.loadingMore {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.8125rem;
+  color: #737373;
+  text-align: center;
+}
+
 @media (max-width: 480px) {
   .dropdown {
     position: fixed;

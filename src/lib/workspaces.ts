@@ -1,13 +1,39 @@
 import { apiClient } from './api';
 import { ApiSuccessResponse } from '@/types/auth';
 import { Workspace, WorkspaceMember, WorkspaceTab } from '@/types/workspace';
+import { PAGE_SIZE } from '@/types/pagination';
 
-export async function listWorkspacesRequest(tab: WorkspaceTab = 'owned'): Promise<Workspace[]> {
-  const { data } = await apiClient.get<ApiSuccessResponse<{ workspaces: Workspace[] }>>(
-    '/workspaces',
-    { params: { tab } },
+export interface WorkspaceListResult {
+  workspaces: Workspace[];
+  total: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+}
+
+export async function listWorkspacesRequest(
+  tab: WorkspaceTab = 'owned',
+  offset = 0,
+  limit = PAGE_SIZE,
+): Promise<WorkspaceListResult> {
+  const { data } = await apiClient.get<
+    ApiSuccessResponse<{
+      workspaces: Workspace[];
+      total: number;
+      offset: number;
+      limit: number;
+      hasMore: boolean;
+    }>
+  >('/workspaces', { params: { tab, offset, limit } });
+
+  return data.data;
+}
+
+export async function getWorkspaceRequest(id: number): Promise<Workspace> {
+  const { data } = await apiClient.get<ApiSuccessResponse<{ workspace: Workspace }>>(
+    `/workspaces/${id}`,
   );
-  return data.data.workspaces;
+  return data.data.workspace;
 }
 
 export async function createWorkspaceRequest(payload: {

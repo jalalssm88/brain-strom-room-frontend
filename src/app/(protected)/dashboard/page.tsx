@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMe, useLogout } from '@/features/auth/useAuth';
-import { useWorkspaces, useRespondInvitation } from '@/features/workspaces/useWorkspaces';
+import { useInfiniteWorkspaces, useRespondInvitation } from '@/features/workspaces/useWorkspaces';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { isLocalUserUnverified } from '@/lib/authHelpers';
 import { toApiError } from '@/lib/api';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -24,13 +25,33 @@ export default function DashboardPage() {
   const { data: user, isLoading, isError } = useMe();
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('owned');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { data: workspaces, isLoading: workspacesLoading } = useWorkspaces(activeTab);
-  const { data: pendingWorkspaces } = useWorkspaces('pending');
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const {
+    data,
+    isLoading: workspacesLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteWorkspaces(activeTab);
+
+  const { data: pendingData } = useInfiniteWorkspaces('pending');
   const respondInvitationMutation = useRespondInvitation();
   const logoutMutation = useLogout();
   const [error, setError] = useState('');
 
-  const pendingCount = pendingWorkspaces?.length ?? 0;
+  const workspaces = useMemo(
+    () => data?.pages.flatMap((page) => page.workspaces) ?? [],
+    [data],
+  );
+
+  const pendingCount = pendingData?.pages[0]?.total ?? 0;
+
+  useInfiniteScroll(sentinelRef, {
+    hasMore: !!hasNextPage,
+    isFetching: isFetchingNextPage,
+    fetchNextPage,
+  });
 
   useEffect(() => {
     if (isError) router.replace('/login');
@@ -100,60 +121,71 @@ export default function DashboardPage() {
             <div className={styles.spinner} aria-hidden="true" />
             <p className={styles.muted}>Loading workspaces…</p>
           </div>
-        ) : workspaces && workspaces.length > 0 ? (
-          <ul className={styles.workspaceList}>
-            {workspaces.map((workspace) => (
-              <li key={workspace.invitationId ?? workspace.id}>
-                {activeTab === 'pending' && workspace.invitationId ? (
-                  <div className={styles.pendingCard}>
-                    <div className={styles.cardIcon}>✉️</div>
-                    <div className={styles.cardBody}>
-                      <p className={styles.workspaceName}>{workspace.name}</p>
-                      <p className={styles.workspaceDesc}>
-                        Invited as {workspace.role}
-                        {workspace.expiresAt &&
-                          ` · Expires ${new Date(workspace.expiresAt).toLocaleDateString()}`}
-                      </p>
+        ) : workspaces.length > 0 ? (
+          <>
+            <ul className={styles.workspaceList}>
+              {workspaces.map((workspace) => (
+                <li key={workspace.invitationId ?? workspace.id}>
+                  {activeTab === 'pending' && workspace.invitationId ? (
+                    <div className={styles.pendingCard}>
+                      <div className={styles.cardIcon}>✉️</div>
+                      <div className={styles.cardBody}>
+                        <p className={styles.workspaceName}>{workspace.name}</p>
+                        <p className={styles.workspaceDesc}>
+                          Invited as {workspace.role}
+                          {workspace.expiresAt &&
+                            ` · Expires ${new Date(workspace.expiresAt).toLocaleDateString()}`}
+                        </p>
+                      </div>
+                      <div className={styles.pendingActions}>
+                        <button
+                          type="button"
+                          className={styles.primaryBtn}
+                          onClick={() => handleRespond(workspace.invitationId!, 'accept')}
+                          disabled={respondInvitationMutation.isPending}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.secondaryBtn}
+                          onClick={() => handleRespond(workspace.invitationId!, 'decline')}
+                          disabled={respondInvitationMutation.isPending}
+                        >
+                          Decline
+                        </button>
+                      </div>
                     </div>
-                    <div className={styles.pendingActions}>
-                      <button
-                        type="button"
-                        className={styles.primaryBtn}
-                        onClick={() => handleRespond(workspace.invitationId!, 'accept')}
-                        disabled={respondInvitationMutation.isPending}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.secondaryBtn}
-                        onClick={() => handleRespond(workspace.invitationId!, 'decline')}
-                        disabled={respondInvitationMutation.isPending}
-                      >
-                        Decline
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <Link href={`/workspaces/${workspace.id}`} className={styles.workspaceCard}>
-                    <div className={styles.cardIcon}>
-                      {workspace.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className={styles.cardBody}>
-                      <p className={styles.workspaceName}>{workspace.name}</p>
-                      {workspace.description && (
-                        <p className={styles.workspaceDesc}>{workspace.description}</p>
-                      )}
-                    </div>
-                    <span className={styles.roleBadge}>
-                      {workspace.role} · {workspace.memberCount} member
-                      {workspace.memberCount === 1 ? '' : 's'}
-                    </span>
-                  </Link>
-                )}
-              </li>
-            ))}
-          </ul>
+                  ) : (
+                    <Link href={`/workspaces/${workspace.id}`} className={styles.workspaceCard}>
+                      <div className={styles.cardIcon}>
+                        {workspace.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className={styles.cardBody}>
+                        <p className={styles.workspaceName}>{workspace.name}</p>
+                        {workspace.description && (
+                          <p className={styles.workspaceDesc}>{workspace.description}</p>
+                        )}
+                      </div>
+                      <span className={styles.roleBadge}>
+                        {workspace.role} · {workspace.memberCount} member
+                        {workspace.memberCount === 1 ? '' : 's'}
+                      </span>
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            <div ref={sentinelRef} className={styles.scrollSentinel} aria-hidden="true" />
+
+            {isFetchingNextPage && (
+              <div className={styles.loadingMore}>
+                <div className={styles.spinnerSmall} aria-hidden="true" />
+                <p className={styles.muted}>Loading more…</p>
+              </div>
+            )}
+          </>
         ) : (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>

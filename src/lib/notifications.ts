@@ -1,12 +1,33 @@
 import { apiClient } from './api';
 import { ApiSuccessResponse } from '@/types/auth';
 import { Notification } from '@/types/notification';
+import { PAGE_SIZE } from '@/types/pagination';
 
-export async function listNotificationsRequest(): Promise<Notification[]> {
-  const { data } = await apiClient.get<ApiSuccessResponse<{ notifications: Notification[] }>>(
-    '/notifications',
-  );
-  return data.data.notifications;
+export interface NotificationListResult {
+  notifications: Notification[];
+  total: number;
+  unreadCount: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+}
+
+export async function listNotificationsRequest(
+  offset = 0,
+  limit = PAGE_SIZE,
+): Promise<NotificationListResult> {
+  const { data } = await apiClient.get<
+    ApiSuccessResponse<{
+      notifications: Notification[];
+      total: number;
+      unreadCount: number;
+      offset: number;
+      limit: number;
+      hasMore: boolean;
+    }>
+  >('/notifications', { params: { offset, limit } });
+
+  return data.data;
 }
 
 export async function markNotificationReadRequest(id: number): Promise<Notification> {

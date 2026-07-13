@@ -1,21 +1,45 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  useNotifications,
+  useInfiniteNotifications,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
 } from '@/features/notifications/useNotifications';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import styles from './NotificationDropdown.module.css';
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { data: notifications, isLoading } = useNotifications();
+  const dropdownBodyRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteNotifications();
+
   const markAllRead = useMarkAllNotificationsRead();
   const markRead = useMarkNotificationRead();
 
-  const unreadCount = notifications?.filter((n) => !n.isRead).length ?? 0;
+  const notifications = useMemo(
+    () => data?.pages.flatMap((page) => page.notifications) ?? [],
+    [data],
+  );
+
+  const unreadCount = data?.pages[0]?.unreadCount ?? 0;
+
+  useInfiniteScroll(sentinelRef, {
+    hasMore: !!hasNextPage,
+    isFetching: isFetchingNextPage,
+    fetchNextPage,
+    rootRef: dropdownBodyRef,
+    enabled: isOpen,
+  });
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -68,30 +92,40 @@ export default function NotificationDropdown() {
             )}
           </div>
 
-          <div className={styles.dropdownBody}>
+          <div className={styles.dropdownBody} ref={dropdownBodyRef}>
             {isLoading ? (
               <p className={styles.empty}>Loading…</p>
-            ) : notifications && notifications.length > 0 ? (
-              <ul className={styles.list}>
-                {notifications.map((notification) => (
-                  <li key={notification.id}>
-                    <button
-                      type="button"
-                      className={`${styles.item} ${notification.isRead ? styles.read : styles.unread}`}
-                      onClick={() => handleNotificationClick(notification.id, notification.isRead)}
-                    >
-                      <div className={styles.itemDot} aria-hidden="true" />
-                      <div className={styles.itemContent}>
-                        <p className={styles.itemTitle}>{notification.title}</p>
-                        <p className={styles.itemMessage}>{notification.message}</p>
-                        <p className={styles.itemTime}>
-                          {formatRelativeTime(notification.createdAt)}
-                        </p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+            ) : notifications.length > 0 ? (
+              <>
+                <ul className={styles.list}>
+                  {notifications.map((notification) => (
+                    <li key={notification.id}>
+                      <button
+                        type="button"
+                        className={`${styles.item} ${notification.isRead ? styles.read : styles.unread}`}
+                        onClick={() =>
+                          handleNotificationClick(notification.id, notification.isRead)
+                        }
+                      >
+                        <div className={styles.itemDot} aria-hidden="true" />
+                        <div className={styles.itemContent}>
+                          <p className={styles.itemTitle}>{notification.title}</p>
+                          <p className={styles.itemMessage}>{notification.message}</p>
+                          <p className={styles.itemTime}>
+                            {formatRelativeTime(notification.createdAt)}
+                          </p>
+                        </div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                <div ref={sentinelRef} className={styles.scrollSentinel} aria-hidden="true" />
+
+                {isFetchingNextPage && (
+                  <p className={styles.loadingMore}>Loading more…</p>
+                )}
+              </>
             ) : (
               <div className={styles.emptyState}>
                 <p className={styles.emptyTitle}>No notifications</p>
