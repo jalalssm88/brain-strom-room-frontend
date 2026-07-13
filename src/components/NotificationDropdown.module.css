@@ -1,0 +1,200 @@
+.container {
+  position: relative;
+}
+
+.bellBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #f5f5f5;
+  color: #171717;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.bellBtn:hover {
+  background: #ebebeb;
+}
+
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid #fff;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  max-height: 480px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdownHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.dropdownTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.markAllBtn {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.markAllBtn:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.markAllBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dropdownBody {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  border: none;
+  border-bottom: 1px solid #f5f5f5;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.item:hover {
+  background: #f9fafb;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.unread {
+  background: #eff6ff;
+}
+
+.unread:hover {
+  background: #dbeafe;
+}
+
+.read {
+  background: #fff;
+}
+
+.itemDot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.unread .itemDot {
+  background: #2563eb;
+}
+
+.itemContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #171717;
+  margin: 0;
+}
+
+.itemMessage {
+  font-size: 0.8125rem;
+  color: #525252;
+  margin: 0.2rem 0 0;
+  line-height: 1.4;
+}
+
+.itemTime {
+  font-size: 0.75rem;
+  color: #737373;
+  margin: 0.35rem 0 0;
+}
+
+.emptyState {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.emptyTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #171717;
+  margin: 0 0 0.25rem;
+}
+
+.empty {
+  font-size: 0.875rem;
+  color: #737373;
+  margin: 0;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .dropdown {
+    position: fixed;
+    top: 60px;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+  }
+}

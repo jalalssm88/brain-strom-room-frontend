@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Route-guard only: checks for the presence of the client-set `accessToken`
-// cookie (see lib/tokenStorage.ts) to redirect between public and protected
-// routes. Actual authorization for every API call is enforced by the
-// backend via the Authorization header, not this cookie.
 const GUEST_ONLY_PATHS = ['/login', '/signup'];
-const PROTECTED_PATHS = ['/dashboard'];
+const PROTECTED_PATHS = ['/dashboard', '/workspaces', '/invitations'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -24,8 +20,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // /verify-email?token=... is public (email link may open while logged out).
-  // /verify-email without a token requires an auth session (resend flow).
   if (isVerifyEmailPath && !hasEmailTokenParam && !hasToken) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
@@ -34,5 +28,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/login', '/signup', '/dashboard/:path*', '/verify-email'],
+  matcher: [
+    '/login',
+    '/signup',
+    '/dashboard/:path*',
+    '/workspaces/:path*',
+    '/invitations/:path*',
+    '/verify-email',
+  ],
 };

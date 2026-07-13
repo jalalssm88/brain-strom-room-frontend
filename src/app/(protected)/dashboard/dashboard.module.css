@@ -1,50 +1,368 @@
 .dashboard {
   min-height: 100vh;
-  padding: 2rem;
+  padding: 2rem 2rem 6rem;
   font-family: system-ui, -apple-system, sans-serif;
+  background: #f8fafc;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   max-width: 800px;
   margin: 0 auto 2rem;
+  gap: 1rem;
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 0.9375rem;
+  margin: 0.35rem 0 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .logoutBtn {
   padding: 0.5rem 1rem;
-  background: transparent;
-  border: 1px solid #d4d4d4;
-  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
 }
 
 .logoutBtn:hover {
-  background: #f5f5f5;
+  background: #f1f5f9;
 }
 
-.card {
+.tabs {
+  max-width: 800px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover:not(.tabActive) {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.tabActive {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.tabBadge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.tabActive .tabBadge {
+  background: #fff;
+  color: #2563eb;
+}
+
+.section {
   max-width: 800px;
   margin: 0 auto;
-  padding: 1.5rem;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
 }
 
-.label {
+.error {
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 10px;
   font-size: 0.875rem;
-  color: #666;
-  margin-bottom: 0.25rem;
+  margin-bottom: 1rem;
 }
 
-.value {
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.muted {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.workspaceList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.workspaceCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.workspaceCard:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.cardIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.cardBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.workspaceName {
+  font-weight: 600;
   font-size: 1rem;
+  margin: 0 0 0.2rem;
+  color: #0f172a;
+}
+
+.workspaceDesc {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.roleBadge {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.pendingCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.pendingActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.primaryBtn {
+  padding: 0.5rem 1rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.primaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.secondaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #fff;
+  border: 1px dashed #e2e8f0;
+  border-radius: 16px;
+}
+
+.emptyIcon {
+  font-size: 2.5rem;
   margin-bottom: 1rem;
+}
+
+.emptyTitle {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+}
+
+.fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+  z-index: 50;
+}
+
+.fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.45);
+}
+
+.fab:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 640px) {
+  .dashboard {
+    padding: 1.25rem 1rem 5rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerActions {
+    justify-content: flex-end;
+  }
+
+  .pendingCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pendingActions {
+    justify-content: stretch;
+  }
+
+  .pendingActions button {
+    flex: 1;
+  }
+
+  .workspaceCard {
+    flex-wrap: wrap;
+  }
+
+  .roleBadge {
+    margin-left: 56px;
+  }
+
+  .fab {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
 }
