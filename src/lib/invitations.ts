@@ -9,10 +9,6 @@ export async function acceptInvitationByTokenRequest(token: string): Promise<Wor
   return data.data.workspace;
 }
 
-export async function declineInvitationByTokenRequest(token: string): Promise<void> {
-  await apiClient.post(`/invitations/${token}/decline`);
-}
-
 export async function respondInvitationRequest(payload: {
   invitationId: number;
   action: 'accept' | 'decline';
