@@ -5,5 +5,5 @@ export function isLocalUserUnverified(user: AuthUser): boolean {
 }
 
 export function getPostAuthPath(user: AuthUser): string {
-  return isLocalUserUnverified(user) ? '/verify-email' : '/dashboard';
+  return isLocalUserUnverified(user) ? '/verify-email' : '/my-workspaces';
 }

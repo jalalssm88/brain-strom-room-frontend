@@ -28,8 +28,8 @@ function VerifyEmailContent() {
     verifyMutation
       .mutateAsync(token)
       .then(() => {
-        setSuccess('Email verified successfully! Redirecting to dashboard…');
-        setTimeout(() => router.push('/dashboard'), 2000);
+        setSuccess('Email verified successfully! Redirecting…');
+        setTimeout(() => router.push('/my-workspaces'), 2000);
       })
       .catch((err) => {
         setError(toApiError(err).message);
@@ -45,7 +45,7 @@ function VerifyEmailContent() {
     }
 
     if (user && !isLocalUserUnverified(user)) {
-      router.replace('/dashboard');
+      router.replace('/my-workspaces');
     }
   }, [isLoading, isError, user, token, router]);
 

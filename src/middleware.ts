@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const GUEST_ONLY_PATHS = ['/login', '/signup'];
-const PROTECTED_PATHS = ['/dashboard', '/workspaces', '/invitations'];
+const PROTECTED_PATHS = [
+  '/dashboard',
+  '/my-workspaces',
+  '/shared',
+  '/new',
+  '/chat',
+  '/account',
+  '/settings',
+  '/workspaces',
+  '/invitations',
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -13,7 +23,7 @@ export function middleware(request: NextRequest) {
   const hasEmailTokenParam = request.nextUrl.searchParams.has('token');
 
   if (isGuestOnlyPath && hasToken) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/my-workspaces', request.url));
   }
 
   if (isProtectedPath && !hasToken) {
@@ -32,6 +42,12 @@ export const config = {
     '/login',
     '/signup',
     '/dashboard/:path*',
+    '/my-workspaces/:path*',
+    '/shared/:path*',
+    '/new/:path*',
+    '/chat/:path*',
+    '/account/:path*',
+    '/settings/:path*',
     '/workspaces/:path*',
     '/invitations/:path*',
     '/verify-email',

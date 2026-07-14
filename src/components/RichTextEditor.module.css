@@ -1,0 +1,70 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.toolBtn {
+  min-width: 34px;
+  height: 30px;
+  padding: 0 0.55rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.toolBtn:hover {
+  background: #f1f5f9;
+}
+
+.divider {
+  width: 1px;
+  align-self: stretch;
+  background: #e2e8f0;
+  margin: 0 0.15rem;
+}
+
+.editor {
+  min-height: 88px;
+  max-height: 180px;
+  overflow: auto;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  outline: none;
+}
+
+.editor:empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.editor :global(ul),
+.editor :global(ol) {
+  margin: 0.35rem 0 0.35rem 1.25rem;
+  padding: 0;
+}
+
+.editor :global(li) {
+  margin: 0.15rem 0;
+}
+
+.editor :global(p) {
+  margin: 0 0 0.35rem;
+}

@@ -12,7 +12,6 @@ import {
   useInviteMember,
   useRemoveMember,
 } from '@/features/workspaces/useWorkspaces';
-import { isLocalUserUnverified } from '@/lib/authHelpers';
 import { toApiError } from '@/lib/api';
 import LoadingScreen from '@/components/LoadingScreen';
 import styles from './workspace.module.css';
@@ -21,7 +20,7 @@ export default function WorkspaceDetailPage() {
   const router = useRouter();
   const params = useParams();
   const workspaceId = Number(params.id);
-  const { data: user, isLoading: userLoading, isError } = useMe();
+  const { data: user } = useMe();
   const { data: workspace, isLoading: workspaceLoading } = useWorkspace(workspaceId);
   const { data: members, isLoading: membersLoading, refetch: refetchMembers } =
     useWorkspaceMembers(workspaceId);
@@ -34,14 +33,6 @@ export default function WorkspaceDetailPage() {
   const [inviteRole, setInviteRole] = useState<'EDITOR' | 'VIEWER'>('EDITOR');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  useEffect(() => {
-    if (isError) router.replace('/login');
-  }, [isError, router]);
-
-  useEffect(() => {
-    if (user && isLocalUserUnverified(user)) router.replace('/verify-email');
-  }, [user, router]);
 
   useEffect(() => {
     if (workspace) setName(workspace.name);
@@ -101,33 +92,33 @@ export default function WorkspaceDetailPage() {
     setError('');
     try {
       await deleteMutation.mutateAsync(workspaceId);
-      router.push('/dashboard');
+      router.push('/my-workspaces');
     } catch (err) {
       setError(toApiError(err).message);
     }
   };
 
-  if (userLoading || workspaceLoading || !user || isLocalUserUnverified(user)) {
+  if (workspaceLoading || !user) {
     return <LoadingScreen />;
   }
 
   if (!workspace) {
     return (
-      <main className={styles.page}>
+      <div className={styles.page}>
         <p className={styles.muted}>Workspace not found or you do not have access.</p>
-        <Link href="/dashboard" className={styles.link}>
-          Back to dashboard
+        <Link href="/my-workspaces" className={styles.link}>
+          Back to My Workspace
         </Link>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Link href="/dashboard" className={styles.backLink}>
-            ← Back to dashboard
+          <Link href="/my-workspaces" className={styles.backLink}>
+            ← Back to My Workspace
           </Link>
           <h1 className={styles.title}>{workspace.name}</h1>
           {workspace.description && <p className={styles.subtitle}>{workspace.description}</p>}
@@ -137,6 +128,18 @@ export default function WorkspaceDetailPage() {
 
       {error && <div className={styles.error}>{error}</div>}
       {success && <div className={styles.success}>{success}</div>}
+
+      <section className={styles.boardCta}>
+        <div>
+          <h2 className={styles.sectionTitle}>Notes board</h2>
+          <p className={styles.ctaHint}>
+            Open the full-screen sticky notes canvas for this workspace.
+          </p>
+        </div>
+        <Link href={`/workspaces/${workspaceId}/board`} className={styles.ctaBtn}>
+          Open notes board
+        </Link>
+      </section>
 
       {isAdmin && (
         <section className={styles.section}>
@@ -230,6 +233,6 @@ export default function WorkspaceDetailPage() {
           </button>
         </section>
       )}
-    </main>
+    </div>
   );
 }

@@ -6,6 +6,11 @@ export interface AuthUser {
   provider: string;
   emailVerified: string | null;
   createdAt: string;
+  subscription?: {
+    planName: string;
+    status: string;
+    workspaceLimit: number | null;
+  } | null;
 }
 
 export interface AuthTokens {

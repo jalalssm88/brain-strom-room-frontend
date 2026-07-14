@@ -37,8 +37,8 @@ function AcceptInvitationContent() {
           <h1 className={styles.title}>Invalid invitation link</h1>
           <p className={styles.subtitle}>This invitation link is missing or invalid.</p>
           <p className={styles.footer}>
-            <Link href="/dashboard" className={styles.link}>
-              Go to dashboard
+            <Link href="/my-workspaces" className={styles.link}>
+              Go to My Workspace
             </Link>
           </p>
         </div>
@@ -58,8 +58,8 @@ function AcceptInvitationContent() {
         {success && <div className={styles.success}>{success}</div>}
         {error && (
           <p className={styles.footer}>
-            <Link href="/dashboard" className={styles.link}>
-              Go to dashboard
+            <Link href="/my-workspaces" className={styles.link}>
+              Go to My Workspace
             </Link>
           </p>
         )}

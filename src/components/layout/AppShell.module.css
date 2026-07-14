@@ -1,0 +1,37 @@
+.shell {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.headerFallback {
+  height: 60px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.body {
+  display: flex;
+  align-items: stretch;
+  min-height: calc(100vh - 60px);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 1.5rem;
+}
+
+.mainCollapsed {
+  /* content expands naturally when sidebar collapses */
+}
+
+.boardShell {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+  }
+}
