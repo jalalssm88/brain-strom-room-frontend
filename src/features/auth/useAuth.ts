@@ -10,6 +10,7 @@ import {
   resendVerificationRequest,
   forgotPasswordRequest,
   resetPasswordRequest,
+  updateProfileRequest,
 } from '@/lib/auth';
 import { setTokens, clearTokens, getRefreshToken } from '@/lib/tokenStorage';
 import { useAppDispatch } from '@/store/hooks';
@@ -95,5 +96,18 @@ export function useForgotPassword() {
 export function useResetPassword() {
   return useMutation({
     mutationFn: resetPasswordRequest,
+  });
+}
+
+export function useUpdateProfile() {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateProfileRequest,
+    onSuccess: (user) => {
+      dispatch(setUser(user));
+      queryClient.setQueryData(['auth', 'me'], user);
+    },
   });
 }

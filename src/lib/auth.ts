@@ -49,3 +49,33 @@ export async function resetPasswordRequest(payload: {
 }): Promise<void> {
   await apiClient.post('/auth/reset-password', payload);
 }
+
+export async function updateProfileRequest(payload: {
+  fullName: string;
+  /** `File` to upload, `null` to clear, omit to leave unchanged */
+  avatar?: File | null;
+}): Promise<AuthUser> {
+  const formData = new FormData();
+  formData.append('fullName', payload.fullName);
+  if (payload.avatar instanceof File) {
+    formData.append('avatar', payload.avatar);
+  } else if (payload.avatar === null) {
+    formData.append('avatar', '');
+  }
+
+  const { data } = await apiClient.patch<ApiSuccessResponse<{ user: AuthUser }>>(
+    '/auth/profile',
+    formData,
+    {
+      transformRequest: [
+        (body, headers) => {
+          if (body instanceof FormData) {
+            delete headers['Content-Type'];
+          }
+          return body;
+        },
+      ],
+    },
+  );
+  return data.data.user;
+}

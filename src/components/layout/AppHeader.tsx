@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLogout, useMe } from '@/features/auth/useAuth';
+import { resolveMediaUrl } from '@/lib/media';
 import NotificationDropdown from '@/components/NotificationDropdown';
 import { useSidebar } from './SidebarContext';
 import styles from './AppHeader.module.css';
@@ -18,6 +19,7 @@ export default function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const menuRef = useRef<HTMLDivElement>(null);
+  const avatarUrl = resolveMediaUrl(user?.avatar);
 
   useEffect(() => {
     setQuery(searchParams.get('q') ?? '');
@@ -97,9 +99,9 @@ export default function AppHeader() {
             aria-label="Profile menu"
             aria-expanded={menuOpen}
           >
-            {user?.avatar ? (
+            {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.avatar} alt="" className={styles.avatarImg} />
+              <img src={avatarUrl} alt="" className={styles.avatarImg} />
             ) : (
               <span className={styles.avatarFallback}>{initials}</span>
             )}
