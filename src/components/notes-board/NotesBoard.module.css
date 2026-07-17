@@ -219,6 +219,32 @@
   font-weight: 700;
 }
 
+.noteFooter {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: calc(0.35rem * var(--note-scale, 1));
+  padding-top: calc(0.3rem * var(--note-scale, 1));
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  font-size: calc(0.65rem * var(--note-scale, 1));
+}
+
+.commentBtn {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  color: #334155;
+  border-radius: 999px;
+  padding: 0.15rem 0.45rem;
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.commentBtn:hover {
+  background: #fff;
+}
+
 .resizeHandle {
   position: absolute;
   z-index: 3;

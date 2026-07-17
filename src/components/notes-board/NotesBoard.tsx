@@ -7,11 +7,14 @@ import {
   useNotes,
   useUpdateNote,
 } from '@/features/notes/useNotes';
+import { useToggleVote } from '@/features/votes/useVotes';
 import { toApiError } from '@/lib/api';
 import { getDisplayHtml } from '@/lib/richText';
 import { Note } from '@/types/note';
 import { MemberRole } from '@/types/workspace';
+import NoteCommentsPanel from './NoteCommentsPanel';
 import NoteEditorModal, { NoteEditorSavePayload } from './NoteEditorModal';
+import VoteButton from './VoteButton';
 import styles from './NotesBoard.module.css';
 
 const MIN_NOTE_SIZE = 80;
@@ -103,18 +106,31 @@ export default function NotesBoard({
   const createMutation = useCreateNote(workspaceId);
   const updateMutation = useUpdateNote(workspaceId);
   const deleteMutation = useDeleteNote(workspaceId);
+  const toggleVoteMutation = useToggleVote(workspaceId);
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const [localNotes, setLocalNotes] = useState<Note[]>([]);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [interaction, setInteraction] = useState<Interaction>(null);
+  const interactionRef = useRef<Interaction>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [commentsNoteId, setCommentsNoteId] = useState<number | null>(null);
   const [editor, setEditor] = useState<EditorState>(null);
   const [error, setError] = useState('');
   const [modalError, setModalError] = useState('');
   const movedRef = useRef(false);
   const lastTapRef = useRef<{ noteId: number; time: number } | null>(null);
+
+  const beginInteraction = (next: NonNullable<Interaction>) => {
+    interactionRef.current = next;
+    setInteraction(next);
+  };
+
+  const clearInteraction = () => {
+    interactionRef.current = null;
+    setInteraction(null);
+  };
 
   useEffect(() => {
     if (!interaction) {
@@ -140,9 +156,11 @@ export default function NotesBoard({
   const handleViewportPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     if ((e.target as HTMLElement).closest('[data-note-id]')) return;
+    if ((e.target as HTMLElement).closest('[data-comments-panel]')) return;
 
     setSelectedId(null);
-    setInteraction({
+    setCommentsNoteId(null);
+    beginInteraction({
       type: 'pan',
       startX: e.clientX,
       startY: e.clientY,
@@ -155,6 +173,7 @@ export default function NotesBoard({
   const handleNotePointerDown = (e: PointerEvent<HTMLDivElement>, note: Note) => {
     if (e.button !== 0) return;
     if ((e.target as HTMLElement).closest('[data-resize-handle]')) return;
+    if ((e.target as HTMLElement).closest('[data-note-action]')) return;
     e.stopPropagation();
     setSelectedId(note.id);
     movedRef.current = false;
@@ -162,7 +181,7 @@ export default function NotesBoard({
     const isOwner = note.createdById === currentUserId;
     if (!canWrite || !isOwner) return;
 
-    setInteraction({
+    beginInteraction({
       type: 'note',
       noteId: note.id,
       startX: e.clientX,
@@ -192,7 +211,7 @@ export default function NotesBoard({
     setSelectedId(note.id);
     movedRef.current = false;
 
-    setInteraction({
+    beginInteraction({
       type: 'resize',
       noteId: note.id,
       handle,
@@ -207,27 +226,28 @@ export default function NotesBoard({
   };
 
   const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (!interaction) return;
+    const current = interactionRef.current;
+    if (!current) return;
 
-    if (interaction.type === 'pan') {
+    if (current.type === 'pan') {
       setOffset({
-        x: interaction.originX + (e.clientX - interaction.startX),
-        y: interaction.originY + (e.clientY - interaction.startY),
+        x: current.originX + (e.clientX - current.startX),
+        y: current.originY + (e.clientY - current.startY),
       });
       return;
     }
 
-    const dx = (e.clientX - interaction.startX) / scale;
-    const dy = (e.clientY - interaction.startY) / scale;
-    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+    const dx = (e.clientX - current.startX) / scale;
+    const dy = (e.clientY - current.startY) / scale;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
       movedRef.current = true;
     }
 
-    if (interaction.type === 'note') {
+    if (current.type === 'note') {
       setLocalNotes((prev) =>
         prev.map((note) =>
-          note.id === interaction.noteId
-            ? { ...note, x: interaction.originNoteX + dx, y: interaction.originNoteY + dy }
+          note.id === current.noteId
+            ? { ...note, x: current.originNoteX + dx, y: current.originNoteY + dy }
             : note,
         ),
       );
@@ -235,24 +255,24 @@ export default function NotesBoard({
     }
 
     const next = applyResize(
-      interaction.handle,
+      current.handle,
       {
-        x: interaction.originX,
-        y: interaction.originY,
-        width: interaction.originWidth,
-        height: interaction.originHeight,
+        x: current.originX,
+        y: current.originY,
+        width: current.originWidth,
+        height: current.originHeight,
       },
       dx,
       dy,
     );
 
     setLocalNotes((prev) =>
-      prev.map((note) => (note.id === interaction.noteId ? { ...note, ...next } : note)),
+      prev.map((note) => (note.id === current.noteId ? { ...note, ...next } : note)),
     );
   };
 
   const handlePointerUp = async (e: PointerEvent<HTMLDivElement>) => {
-    const current = interaction;
+    const current = interactionRef.current;
     if (current) {
       try {
         e.currentTarget.releasePointerCapture(e.pointerId);
@@ -260,7 +280,7 @@ export default function NotesBoard({
         /* already released */
       }
     }
-    setInteraction(null);
+    clearInteraction();
 
     if (!current || current.type === 'pan') return;
 
@@ -268,7 +288,7 @@ export default function NotesBoard({
     if (current.type === 'note' && !movedRef.current) {
       const now = Date.now();
       const previous = lastTapRef.current;
-      if (previous && previous.noteId === current.noteId && now - previous.time < 400) {
+      if (previous && previous.noteId === current.noteId && now - previous.time < 500) {
         lastTapRef.current = null;
         openEditModal(current.noteId);
       } else {
@@ -375,6 +395,20 @@ export default function NotesBoard({
     setOffset({ x: 0, y: 0 });
   };
 
+  const handleToggleVote = async (noteId: number) => {
+    if (!canWrite) return;
+    setError('');
+    try {
+      await toggleVoteMutation.mutateAsync(noteId);
+    } catch (err) {
+      setError(toApiError(err).message);
+    }
+  };
+
+  const commentsNote = commentsNoteId
+    ? (localNotes.find((note) => note.id === commentsNoteId) ?? null)
+    : null;
+
   return (
     <section className={`${styles.wrap} ${fullScreen ? styles.wrapFull : ''}`}>
       <div className={styles.toolbar}>
@@ -382,8 +416,8 @@ export default function NotesBoard({
           <h2 className={styles.title}>Notes board</h2>
           <p className={styles.hint}>
             {canWrite
-              ? 'Add note · Double-click to edit · Drag · Resize · Pan · Wheel zoom'
-              : 'View only · Pan empty space · Wheel zoom'}
+              ? 'Add note · Double-click to edit · Vote · Comment icon · Drag · Pan · Zoom'
+              : 'View only · Comment icon · Pan · Wheel zoom'}
           </p>
         </div>
         <div className={styles.actions}>
@@ -449,6 +483,33 @@ export default function NotesBoard({
                     dangerouslySetInnerHTML={{ __html: getDisplayHtml(note.content) || '&nbsp;' }}
                   />
 
+                  <div className={styles.noteFooter} data-note-action>
+                    <VoteButton
+                      workspaceId={workspaceId}
+                      noteId={note.id}
+                      voteCount={note.voteCount ?? 0}
+                      hasVoted={Boolean(note.hasVoted)}
+                      canVote={canWrite}
+                      isToggling={toggleVoteMutation.isPending}
+                      onToggle={() => {
+                        void handleToggleVote(note.id);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className={styles.commentBtn}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedId(note.id);
+                        setCommentsNoteId(note.id);
+                      }}
+                      title="Open comments"
+                    >
+                      💬 {note.commentCount ?? 0}
+                    </button>
+                  </div>
+
                   {canResize &&
                     RESIZE_HANDLES.map((handle) => (
                       <span
@@ -476,6 +537,17 @@ export default function NotesBoard({
             {localNotes.length} note{localNotes.length === 1 ? '' : 's'}
           </span>
         </div>
+
+        {commentsNote && (
+          <NoteCommentsPanel
+            workspaceId={workspaceId}
+            noteId={commentsNote.id}
+            noteTitle={commentsNote.title}
+            currentUserId={currentUserId}
+            role={role}
+            onClose={() => setCommentsNoteId(null)}
+          />
+        )}
       </div>
 
       <NoteEditorModal
