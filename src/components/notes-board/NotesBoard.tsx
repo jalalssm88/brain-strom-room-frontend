@@ -8,10 +8,12 @@ import {
   useUpdateNote,
 } from '@/features/notes/useNotes';
 import { useToggleVote } from '@/features/votes/useVotes';
+import { useWorkspaceRealtime } from '@/features/realtime/useWorkspaceRealtime';
 import { toApiError } from '@/lib/api';
 import { getDisplayHtml } from '@/lib/richText';
 import { Note } from '@/types/note';
 import { MemberRole } from '@/types/workspace';
+import UserAvatar from '@/components/UserAvatar';
 import NoteCommentsPanel from './NoteCommentsPanel';
 import NoteEditorModal, { NoteEditorSavePayload } from './NoteEditorModal';
 import VoteButton from './VoteButton';
@@ -107,6 +109,10 @@ export default function NotesBoard({
   const updateMutation = useUpdateNote(workspaceId);
   const deleteMutation = useDeleteNote(workspaceId);
   const toggleVoteMutation = useToggleVote(workspaceId);
+  const { presence, connected, remoteSelections, publishSelection } = useWorkspaceRealtime(
+    workspaceId,
+    currentUserId,
+  );
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const [localNotes, setLocalNotes] = useState<Note[]>([]);
@@ -137,6 +143,10 @@ export default function NotesBoard({
       setLocalNotes(notes);
     }
   }, [notes, interaction]);
+
+  useEffect(() => {
+    publishSelection(selectedId);
+  }, [selectedId, publishSelection]);
 
   const editingNote =
     editor?.mode === 'edit'
@@ -420,15 +430,40 @@ export default function NotesBoard({
               : 'View only · Comment icon · Pan · Wheel zoom'}
           </p>
         </div>
-        <div className={styles.actions}>
-          <button type="button" className={styles.secondaryBtn} onClick={resetView}>
-            Reset view
-          </button>
-          {canWrite && (
-            <button type="button" className={styles.primaryBtn} onClick={openCreateModal}>
-              Add note
+        <div className={styles.toolbarRight}>
+          <div className={styles.presence} title={connected ? 'Live' : 'Connecting…'}>
+            <span
+              className={`${styles.presenceDot} ${connected ? styles.presenceDotOn : ''}`}
+              aria-hidden
+            />
+            <div className={styles.presenceAvatars}>
+              {presence.slice(0, 5).map((user) => (
+                <UserAvatar
+                  key={user.userId}
+                  fullName={user.fullName}
+                  avatar={user.avatar}
+                  className={styles.presenceAvatar}
+                  fallbackClassName={styles.presenceAvatarFallback}
+                />
+              ))}
+              {presence.length > 5 && (
+                <span className={styles.presenceMore}>+{presence.length - 5}</span>
+              )}
+            </div>
+            <span className={styles.presenceLabel}>
+              {presence.length} online
+            </span>
+          </div>
+          <div className={styles.actions}>
+            <button type="button" className={styles.secondaryBtn} onClick={resetView}>
+              Reset view
             </button>
-          )}
+            {canWrite && (
+              <button type="button" className={styles.primaryBtn} onClick={openCreateModal}>
+                Add note
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -458,12 +493,14 @@ export default function NotesBoard({
               const isOwner = note.createdById === currentUserId;
               const canResize = canWrite && isOwner;
               const textScale = getTextScale(note.width, note.height);
+              const viewers = remoteSelections.filter((item) => item.noteId === note.id);
+              const remoteBorderColor = viewers[0]?.color;
 
               return (
                 <div
                   key={note.id}
                   data-note-id={note.id}
-                  className={`${styles.note} ${selectedId === note.id ? styles.noteActive : ''} ${canResize ? styles.noteDraggable : ''}`}
+                  className={`${styles.note} ${selectedId === note.id ? styles.noteActive : ''} ${viewers.length > 0 ? styles.noteRemoteSelected : ''} ${canResize ? styles.noteDraggable : ''}`}
                   style={{
                     left: note.x,
                     top: note.y,
@@ -471,9 +508,26 @@ export default function NotesBoard({
                     height: note.height,
                     backgroundColor: note.color,
                     ['--note-scale' as string]: String(textScale),
+                    ...(remoteBorderColor
+                      ? { ['--remote-selection-color' as string]: remoteBorderColor }
+                      : {}),
                   }}
                   onPointerDown={(e) => handleNotePointerDown(e, note)}
                 >
+                  {viewers.length > 0 && (
+                    <div className={styles.remoteSelectors} aria-hidden>
+                      {viewers.map((viewer) => (
+                        <span
+                          key={viewer.userId}
+                          className={styles.remoteSelectorChip}
+                          style={{ backgroundColor: viewer.color }}
+                          title={viewer.fullName}
+                        >
+                          {viewer.fullName.split(' ')[0]}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <div className={styles.noteHeader}>
                     <span className={styles.noteTitle}>{note.title}</span>
                     <span className={styles.noteAuthor}>{note.authorName}</span>

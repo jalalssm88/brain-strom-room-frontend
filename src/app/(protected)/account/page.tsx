@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import EditProfileModal from '@/components/EditProfileModal';
+import UserAvatar from '@/components/UserAvatar';
 import { useMe } from '@/features/auth/useAuth';
-import { resolveMediaUrl } from '@/lib/media';
 import styles from '../page-content.module.css';
 
 export default function AccountPage() {
@@ -12,14 +12,6 @@ export default function AccountPage() {
 
   if (!user) return null;
 
-  const initials = user.fullName
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
-  const avatarUrl = resolveMediaUrl(user.avatar);
   const plan = user.subscription;
   const limitLabel =
     plan?.workspaceLimit == null ? 'Unlimited' : String(plan.workspaceLimit);
@@ -30,12 +22,12 @@ export default function AccountPage() {
 
       <div className={styles.card}>
         <div className={styles.profileHero}>
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="" className={styles.avatar} />
-          ) : (
-            <div className={styles.avatar}>{initials}</div>
-          )}
+          <UserAvatar
+            fullName={user.fullName}
+            avatar={user.avatar}
+            className={styles.avatar}
+            fallbackClassName={styles.avatar}
+          />
           <div className={styles.profileMeta}>
             <p className={styles.profileName}>{user.fullName}</p>
             <p className={styles.profileEmail}>{user.email}</p>

@@ -6,6 +6,7 @@ import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
 } from '@/features/notifications/useNotifications';
+import { useNotificationRealtime } from '@/features/realtime/useNotificationRealtime';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import styles from './NotificationDropdown.module.css';
 
@@ -14,6 +15,8 @@ export default function NotificationDropdown() {
   const containerRef = useRef<HTMLDivElement>(null);
   const dropdownBodyRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useNotificationRealtime(true);
 
   const {
     data,
