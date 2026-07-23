@@ -141,6 +141,18 @@ export default function WorkspaceDetailPage() {
         </Link>
       </section>
 
+      <section className={styles.boardCta}>
+        <div>
+          <h2 className={styles.sectionTitle}>Group chat</h2>
+          <p className={styles.ctaHint}>
+            Realtime workspace chat with history. Viewers can read only.
+          </p>
+        </div>
+        <Link href={`/workspaces/${workspaceId}/chat`} className={styles.ctaBtn}>
+          Open chat
+        </Link>
+      </section>
+
       {isAdmin && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Rename workspace</h2>

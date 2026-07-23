@@ -6,6 +6,7 @@ import { useMe } from '@/features/auth/useAuth';
 import { useWorkspace } from '@/features/workspaces/useWorkspaces';
 import LoadingScreen from '@/components/LoadingScreen';
 import NotesBoard from '@/components/notes-board/NotesBoard';
+import BoardChatFloat from '@/components/chat/BoardChatFloat';
 import styles from './board.module.css';
 
 export default function WorkspaceBoardPage() {
@@ -47,6 +48,13 @@ export default function WorkspaceBoardPage() {
           fullScreen
         />
       </div>
+
+      <BoardChatFloat
+        workspaceId={workspaceId}
+        workspaceName={workspace.name}
+        currentUserId={user.id}
+        role={workspace.role}
+      />
     </div>
   );
 }

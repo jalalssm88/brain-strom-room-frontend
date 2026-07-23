@@ -33,14 +33,25 @@ export function useCreateComment(workspaceId: number, noteId: number) {
     mutationFn: (payload: CreateCommentPayload) =>
       createCommentRequest(workspaceId, noteId, payload),
     onSuccess: (comment) => {
-      queryClient.setQueryData<Comment[]>(commentsKey(workspaceId, noteId), (prev) =>
-        prev ? [...prev, comment] : [comment],
-      );
-      queryClient.setQueryData<Note[]>(notesKey(workspaceId), (prev) =>
-        prev?.map((note) =>
-          note.id === noteId ? { ...note, commentCount: (note.commentCount ?? 0) + 1 } : note,
-        ),
-      );
+      let added = false;
+      queryClient.setQueryData<Comment[]>(commentsKey(workspaceId, noteId), (prev) => {
+        if (!prev) {
+          added = true;
+          return [comment];
+        }
+        if (prev.some((item) => item.id === comment.id)) return prev;
+        added = true;
+        return [...prev, comment];
+      });
+
+      // Socket may have already applied this comment; only bump count when we add it.
+      if (added) {
+        queryClient.setQueryData<Note[]>(notesKey(workspaceId), (prev) =>
+          prev?.map((note) =>
+            note.id === noteId ? { ...note, commentCount: (note.commentCount ?? 0) + 1 } : note,
+          ),
+        );
+      }
     },
   });
 }
@@ -70,16 +81,22 @@ export function useDeleteComment(workspaceId: number, noteId: number) {
   return useMutation({
     mutationFn: (commentId: number) => deleteCommentRequest(workspaceId, noteId, commentId),
     onSuccess: (_data, commentId) => {
-      queryClient.setQueryData<Comment[]>(commentsKey(workspaceId, noteId), (prev) =>
-        prev?.filter((item) => item.id !== commentId),
-      );
-      queryClient.setQueryData<Note[]>(notesKey(workspaceId), (prev) =>
-        prev?.map((note) =>
-          note.id === noteId
-            ? { ...note, commentCount: Math.max(0, (note.commentCount ?? 0) - 1) }
-            : note,
-        ),
-      );
+      let removed = false;
+      queryClient.setQueryData<Comment[]>(commentsKey(workspaceId, noteId), (prev) => {
+        if (!prev?.some((item) => item.id === commentId)) return prev;
+        removed = true;
+        return prev.filter((item) => item.id !== commentId);
+      });
+
+      if (removed) {
+        queryClient.setQueryData<Note[]>(notesKey(workspaceId), (prev) =>
+          prev?.map((note) =>
+            note.id === noteId
+              ? { ...note, commentCount: Math.max(0, (note.commentCount ?? 0) - 1) }
+              : note,
+          ),
+        );
+      }
     },
   });
 }

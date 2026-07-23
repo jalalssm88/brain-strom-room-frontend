@@ -23,9 +23,11 @@ export function useCreateNote(workspaceId: number) {
   return useMutation({
     mutationFn: (payload: CreateNotePayload) => createNoteRequest(workspaceId, payload),
     onSuccess: (note) => {
-      queryClient.setQueryData<Note[]>(['workspaces', workspaceId, 'notes'], (prev) =>
-        prev ? [...prev, note] : [note],
-      );
+      queryClient.setQueryData<Note[]>(['workspaces', workspaceId, 'notes'], (prev) => {
+        if (!prev) return [note];
+        if (prev.some((item) => item.id === note.id)) return prev;
+        return [...prev, note];
+      });
     },
   });
 }

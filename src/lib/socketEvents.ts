@@ -2,6 +2,7 @@ export const SOCKET_EVENTS = {
   WORKSPACE_JOIN: 'workspace:join',
   WORKSPACE_LEAVE: 'workspace:leave',
   SELECTION_UPDATE: 'selection:update',
+  CHAT_MESSAGE: 'chat:message',
   TYPING_START: 'typing:start',
   TYPING_STOP: 'typing:stop',
 } as const;
@@ -18,6 +19,7 @@ export const SOCKET_BROADCAST_EVENTS = {
   NOTIFICATION_NEW: 'notification:new',
   PRESENCE_UPDATE: 'presence:update',
   SELECTION_UPDATE: 'selection:update',
+  CHAT_MESSAGE: 'chat:message',
   TYPING_START: 'typing:start',
   TYPING_STOP: 'typing:stop',
 } as const;
